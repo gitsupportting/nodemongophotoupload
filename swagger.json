@@ -1,0 +1,185 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "Swagger API Document",
+        "title": "API for POS",
+        "version": "v1"
+    },
+    "schemes": "HTTP",
+    "basePath": "/",
+    "components": {
+        "securitySchemes": {
+            "basicAuth": {
+                "type": "http",
+                "scheme": "basic",
+                "name": "X-POS-User-Token",
+                "in": "header"
+            }
+        }
+    },
+    "tags": [
+        {
+          "name": "user API",
+          "description": "APIs to create and login user"
+        },
+        {
+          "name": "order API",
+          "description": "validate and create order, query orders and retrieve orders"
+        },
+        {
+          "name": "file API",
+          "description": "upload and download file, get file list, upload and download menu.json"
+        },
+        {
+            "name": "query API",
+            "description": "query products"
+        }
+      ],
+    "paths": {
+        "/users/signup": {
+            "post": {
+                "tags": [
+                    "user API"
+                  ],
+                "summary": "Create new user",
+                "parameters": [{
+                    "in": "formData",
+                    "name": "email",
+                    "type": "string",
+                    "description": "Email address of new user",
+                    "required": true
+                }, {
+                    "in": "formData",
+                    "name": "password",
+                    "type": "string",
+                    "description": "Password of new user",
+                    "required": true
+                }, {
+                    "in": "formData",
+                    "name": "name",
+                    "type": "string",
+                    "description": "Name of new user",
+                    "required": true
+                }, {
+                    "in": "formData",
+                    "name": "cellnumber",
+                    "type": "string",
+                    "description": "Phone number of new user",
+                    "required": true
+                }],
+                "responses": {
+                    "200":{
+                        "description": "User successfully created"
+                    },
+                    "201":{
+                        "description": "The email already exist"
+                    },
+                    "405":{
+                        "description": "Invalid input"
+                    }
+                }
+            }
+        },
+        "/users/login": {
+            "post": {
+                "tags": [
+                    "user API"
+                  ],
+                "summary": "User signs in",
+                "parameters": [{
+                    "in": "formData",
+                    "name": "email",
+                    "type": "string",
+                    "description": "Email address of user",
+                    "required": true
+                }, {
+                    "in": "formData",
+                    "name": "password",
+                    "type": "string",
+                    "description": "Password of user",
+                    "required": true
+                }],
+                "responses": {
+                    "200":{
+                        "description": "User successfully logged in"
+                    },
+                    "201":{
+                        "description": "Username or password is incorrect"
+                    },
+                    "405":{
+                        "description": "Invalid input"
+                    }
+                }
+            }
+        },
+        "/files/{filename}": {
+            "post": {
+                "tags": [
+                    "file API"
+                  ],
+                "summary": "upload a file",
+                "parameters": [{
+                    "name": "filename",
+                    "in": "path",
+                    "description": "name of upload file",
+                    "required": true,
+                    "type": "string"
+                }, {
+                    "name": "file",
+                    "in": "formData",
+                    "type": "file",
+                    "description": "file of upload",
+                    "required": true
+                }],
+                "responses": {
+                    "200": {
+                        "description": "upload success"
+                    },
+                    "405": {
+                        "description": "invalid input"
+                    }
+                },
+                "security": [{
+                    "oAuth": []
+                }]
+            },
+            "get": {
+                "tags": [
+                    "file API"
+                  ],
+                "summary": "download a file",
+                "parameters": [{
+                    "name": "filename",
+                    "in": "path",
+                    "description": "name of download file",
+                    "required": true,
+                    "type": "string"
+                }],
+                "responses": {
+                    "200": {
+                        "description": "download success"
+                    }
+                },
+                "security": [{
+                    "oAuth": []
+                }]
+            }
+        },
+        "/files": {
+            "get": {
+                "tags": [
+                    "file API"
+                  ],
+                "summary": "get file list of a account",
+                "responses": {
+                    "200": {
+                        "description": "list of files"
+                    }
+                },
+                "security": [{
+                    "oAuth": []
+                }]
+            }
+        }       
+    }
+}
