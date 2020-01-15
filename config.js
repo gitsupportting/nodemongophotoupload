@@ -1,9 +1,9 @@
 var config = {};
 /** * Database and collections ***/
-config.db_url = 'mongodb://localhost:27017/';
-// config.db_url = 'mongodb+srv://rabiauser:yzzVNSbEnt2UsC11@clusterrab-luys6.mongodb.net/test?retryWrites=true&w=majority';
-// config.database = 'dbphotographer';
-config.database = 'mydb';
+// config.db_url = 'mongodb://localhost:27017/';
+config.db_url = 'mongodb+srv://rabiauser:yzzVNSbEnt2UsC11@clusterrab-luys6.mongodb.net/test?retryWrites=true&w=majority';
+config.database = 'dbphotographer';
+// config.database = 'mydb';
 config.collection = 'customers';
 config.userCollection = 'users';
 config.galleryCollection = 'galleries';

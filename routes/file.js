@@ -53,13 +53,14 @@ router.post('/files/:filename', upload.single('file'), function (req, res) {
     var user_id = req.body.user_id;
     var GalleryName = req.body.GalleryName;
     var gallery_id = req.body.gallery_id;
+    var imageStatus = req.body.imageStatus;
     var filename = req.params.filename;
 
     var collection = db.get().collection(config.imageCollection);
     var query = { 'user_id': user_id, 'GalleryName': GalleryName, 'filename': filename, 'gallery_id': gallery_id };
     collection.find(query).toArray(function (_err, docs) {
       if (docs.length === 0) {
-        query = { 'image_id': uniqid.time(), 'user_id': user_id, 'gallery_id': gallery_id, 'GalleryName': GalleryName, 'filename': filename };
+        query = { 'image_id': uniqid.time(), 'user_id': user_id, 'gallery_id': gallery_id, 'GalleryName': GalleryName, 'filename': filename, 'imageStatus':imageStatus };
         collection.insertOne(query, function (_err, inserted) {
           // res.json(_displayResults(_resultCode.IMAGE_UPLOADED_SUCCESS, 'Successfully uploaded', true));
         });
@@ -242,51 +243,84 @@ router.get('/files', function (req, res) {
 // });
 
 /* Create article : POST */
-router.post('/getdata/addarticle', function (req, res, next) {
-  var title = req.body.title;
-  if (title === undefined) {
-    res.status(405).json(_displayResults(_resultCode.TITLE_UNDEFINED, 'Title(title) is undefined'));
-    return;
-  }
-  var content = req.body.content;
-  if (content === undefined) {
-    res.status(405).json(_displayResults(_resultCode.CONTENT_UNDEFINED, 'Content(content) is undefined'));
-    return;
-  }
-  var status_b = req.body.status_b;
-  if (status_b === undefined) {
-    res.status(405).json(_displayResults(_resultCode.STATUS_UNDEFINED, 'Status_b(status_b) is undefined'));
-    return;
-  }
-  var dateTime = req.body.dateTime;
-  if (dateTime === undefined) {
-    res.status(405).json(_displayResults(_resultCode.DATETIME_UNDEFINED, 'dateTime is undefined'));
-    return;
-  }
-  var mainImage = req.body.mainImage;
-  if (mainImage === undefined) {
-    res.status(405).json(_displayResults(_resultCode.MAINIMAGE_UNDEFINED, 'mainImage is undefined'));
-    return;
-  }
-  // var sticky = req.body.sticky;
-  // if (sticky === undefined) {
-  //   res.status(405).json(_displayResults(_resultCode.STICKY_UNDEFINED, 'sticky is undefined'));
-  //   return;
-  // }
 
-  var collection = db.get().collection(config.articleCollection);
-  var query = { 'title': title };
-  collection.find(query).toArray(function (_err, docs) {
-    if (docs.length === 0) {
-      query = { 'article_id': uniqid.time(), 'title': title, 'content': content, 'status_b': status_b, 'dateTime': dateTime, 'mainImage': mainImage, 'sticky':'' };
-      collection.insertOne(query, function (_err, inserted) {
-        res.json(_displayResults(_resultCode.ARTICLE_CREATED_SUCCESS, 'Successfully created', true));
-      });
-    } else {
-      res.status(201).json(_displayResults(_resultCode.ARTICLE_ALREADY_EXIST, 'This email already exist'));
+var storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    if (!fs.existsSync('uploads')) {
+      fs.mkdirSync('uploads');
     }
-  });
+
+
+    var dir = 'uploads/articles';
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir);
+    }
+    cb(null, dir);
+  },
+  filename: (req, file, cb) => {
+    var filename = req.params.filename;
+    if (filename === undefined) {
+      filename = menufile;
+    }
+    cb(null, filename);
+  }
 });
+
+var maxSize = config.upload_file_max_size;
+var upload = multer({ storage: storage, limits: { fileSize: maxSize } });
+
+/** ************************ file uplaod and download route *************************/
+/* file upload : POST */
+router.post('/getdata/addarticle/:filename', upload.single('file'), function (req, res) {
+  if (req.file) {
+    var title = req.body.title;
+    if (title === undefined) {
+      res.status(405).json(_displayResults(_resultCode.TITLE_UNDEFINED, 'Title(title) is undefined'));
+      return;
+    }
+    var content = req.body.content;
+    if (content === undefined) {
+      res.status(405).json(_displayResults(_resultCode.CONTENT_UNDEFINED, 'Content(content) is undefined'));
+      return;
+    }
+    var status_b = req.body.status_b;
+    if (status_b === undefined) {
+      res.status(405).json(_displayResults(_resultCode.STATUS_UNDEFINED, 'Status_b(status_b) is undefined'));
+      return;
+    }
+    var dateTime = req.body.dateTime;
+    if (dateTime === undefined) {
+      res.status(405).json(_displayResults(_resultCode.DATETIME_UNDEFINED, 'dateTime is undefined'));
+      return;
+    }
+    var mainImage = req.body.mainImage;
+    if (mainImage === undefined) {
+      res.status(405).json(_displayResults(_resultCode.MAINIMAGE_UNDEFINED, 'mainImage is undefined'));
+      return;
+    }
+    var sticky = req.body.sticky;
+    if (sticky === undefined) {
+      res.status(405).json(_displayResults(_resultCode.STICKY_UNDEFINED, 'sticky is undefined'));
+      return;
+    }
+
+    var collection = db.get().collection(config.articleCollection);
+    var query = { 'title': title };
+    collection.find(query).toArray(function (_err, docs) {
+      if (docs.length === 0) {
+        query = { 'article_id': uniqid.time(), 'title': title, 'content': content, 'status_b': status_b, 'dateTime': dateTime, 'mainImage': mainImage, 'sticky': sticky };
+        collection.insertOne(query, function (_err, inserted) {
+          res.json(_displayResults(_resultCode.ARTICLE_CREATED_SUCCESS, 'Successfully created', true));
+        });
+      } else {
+        res.status(201).json(_displayResults(_resultCode.ARTICLE_ALREADY_EXIST, 'This email already exist'));
+      }
+    });
+  } else {
+    res.status(405).json(_displayResults(_resultCode.NO_SELECTED_UPLOAD_FILE, "Please select file(key='file') to upload"));
+  }
+});
+
 
 /* Get articles: Get */
 router.get('/getdata/articles', (req, res) => {
@@ -298,6 +332,12 @@ router.get('/getdata/articles', (req, res) => {
 
 router.post('/getdata/deleteArticle', function (req, res) {
   var article_id = req.body.article_id;
+  var filename = req.body.filename;
+  console.log(filename);
+  var curPath = 'uploads/articles' + '/' + filename;
+  if (!fs.lstatSync(curPath).isDirectory()) { // delete file
+    fs.unlinkSync(curPath);
+  }
   var collection = db.get().collection(config.articleCollection);
   var query = { 'article_id': article_id };
   collection.find(query).toArray(function (_err, docs) {
@@ -308,7 +348,6 @@ router.post('/getdata/deleteArticle', function (req, res) {
     }
   })
 });
-
 /** ************************ menu route *************************/
 /* menu.json file upload : POST */
 router.post('/menu', function (req, res) {
@@ -348,7 +387,7 @@ router.get('/menu', function (req, res) {
 });
 
 // check if obj is empty or not
-function isEmpty (obj) {
+function isEmpty(obj) {
   if (typeof (obj) === 'string') {
     return false;
   }
