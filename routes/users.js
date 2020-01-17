@@ -86,7 +86,7 @@ router.post('/users/signup', function (req, res, next) {
   var query = { 'email': email };
   collection.find(query).toArray(function (_err, docs) {
     if (docs.length === 0) {
-      query = { 'user_id': uniqid.time(), 'email': email, 'password': md5(password), 'name': name, 'role': role, 'ExpirationDays': 0, 'userCode': 0, 'startDate':'yyyy:mm:dd' };
+      query = { 'user_id': uniqid.time(), 'email': email, 'password': md5(password), 'name': name, 'role': role, 'ExpirationDays': 0, 'userCode': 0, 'startDate': 'yyyy:mm:dd' };
       collection.insertOne(query, function (_err, inserted) {
         res.json(_displayResults(_resultCode.USER_CREATED_SUCCESS, 'Successfully created', true));
       });
@@ -417,7 +417,7 @@ router.post('/getdata/addExpirationdays', function (req, res) {
     if (docs.length !== 0) {
       collection.findOneAndUpdate(
         { 'user_id': user_id },
-        { '$set': { 'ExpirationDays': ExpirationDays, 'userCode': userCode, 'startDate':startDate } },
+        { '$set': { 'ExpirationDays': ExpirationDays, 'userCode': userCode, 'startDate': startDate } },
         function (err, doc) {
           if (err) { // err: any errors that occurred
             // console.log(err);

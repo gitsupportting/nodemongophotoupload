@@ -1,5 +1,6 @@
 var config = {};
 /** * Database and collections ***/
+//////////////////////////////////////////////////http://165.227.81.153:3005/
 // config.db_url = 'mongodb://localhost:27017/';
 config.db_url = 'mongodb+srv://rabiauser:yzzVNSbEnt2UsC11@clusterrab-luys6.mongodb.net/test?retryWrites=true&w=majority';
 config.database = 'dbphotographer';
@@ -9,6 +10,7 @@ config.userCollection = 'users';
 config.galleryCollection = 'galleries';
 config.imageCollection = 'images';
 config.articleCollection = 'articles';
+config.articleimagesCollection = 'articleimages';
 config.orderCollection = 'orders';
 
 /** user token authorization parameters **/
