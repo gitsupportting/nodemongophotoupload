@@ -41,7 +41,7 @@ app.use('/uploads', express.static('uploads'));
 
 /* set JWT token */
 app.use('/userauth', userAuth);
-app.use('/getdata', userAuth);
+// app.use('/getdata', userAuth);
 
 app.use('/', indexRouter);
 

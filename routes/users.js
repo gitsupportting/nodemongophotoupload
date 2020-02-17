@@ -81,7 +81,7 @@ router.post('/users/signup', function (req, res, next) {
     res.status(405).json(_displayResults(_resultCode.ROLE_UNDEFINED, 'Phone number(role) is undefined'));
     return;
   }
-
+  console.log(role);
   var collection = db.get().collection(config.userCollection);
   var query = { 'email': email };
   collection.find(query).toArray(function (_err, docs) {
@@ -318,24 +318,37 @@ router.post('/users/login', function (req, res, next) {
         if (docs.length === 0) {
           res.status(201).json(_displayResults(_resultCode.LOGIN_PASSWORD_INVALID, 'Password is incorrect'));
         } else {
-          // if eveything is okey let's create our token
-          var userId = docs[0]['user_id'];
-          const payload = {
-            audience: config.user_token.audience,
-            issuer: config.user_token.issuer,
-            subject: userId,
-            notBefore: (new Date()).toISOString()
-          };
-          var key = config.secret_key;
-          var token = jwt.sign(payload, key, {
-            expiresIn: 3600 * 24 // expires in 1 hour
-          });
-          var result = {
-            message: 'user authentication done',
-            token: token
-          };
-          res.json(_displayResults(_resultCode.LOGIN_SUCCESS, result, true));
-
+          if (docs[0].ExpirationDays !== 0 && docs[0].startDate != 'yyyy:mm:dd') {
+            const date = new Date();
+            const copy = new Date(Number(date));
+            copy.setDate(date.getDate() - Number(docs[0].ExpirationDays))
+            const originDate = new Date(docs[0].startDate);
+            if (copy.getFullYear() <= originDate.getFullYear()) {
+              if (copy.getMonth() + 1 <= originDate.getMonth() + 1 || copy.getFullYear() < originDate.getFullYear()) {
+                if (copy.getDate() <= originDate.getDate() || copy.getMonth() + 1 < originDate.getMonth() + 1 || copy.getFullYear() < originDate.getFullYear()) {
+                  var userId = docs[0]['user_id'];
+                  const payload = {
+                    audience: config.user_token.audience,
+                    issuer: config.user_token.issuer,
+                    subject: userId,
+                    notBefore: (new Date()).toISOString()
+                  };
+                  var key = config.secret_key;
+                  var token = jwt.sign(payload, key, {
+                    expiresIn: 3600 * 24 // expires in 1 hour
+                  });
+                  var result = {
+                    message: 'user authentication done',
+                    token: token,
+                    userId:userId,
+                  };
+                  res.json(_displayResults(_resultCode.LOGIN_SUCCESS, result, true));
+                  return;
+                }
+              }
+            }
+          }
+          res.json(_displayResults(false));
           // var obj = config.params_to_get_new_access_token;
           // let form_data = new FormData();
           // for (let key in obj) {
