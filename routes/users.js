@@ -66,6 +66,11 @@ router.post('/users/signup', function (req, res, next) {
     res.status(405).json(_displayResults(_resultCode.EMAIL_UNDEFINED, 'Email(email) is undefined'));
     return;
   }
+  var phone = req.body.phone;
+  if (phone === undefined) {
+    res.status(405).json(_displayResults(_resultCode.EMAIL_UNDEFINED, 'Phone(phone) is undefined'));
+    return;
+  }
   var password = req.body.password;
   if (password === undefined) {
     res.status(405).json(_displayResults(_resultCode.PASSWORD_UNDEFINED, 'Password(password) is undefined'));
@@ -81,12 +86,11 @@ router.post('/users/signup', function (req, res, next) {
     res.status(405).json(_displayResults(_resultCode.ROLE_UNDEFINED, 'Phone number(role) is undefined'));
     return;
   }
-  console.log(role);
   var collection = db.get().collection(config.userCollection);
   var query = { 'email': email };
   collection.find(query).toArray(function (_err, docs) {
     if (docs.length === 0) {
-      query = { 'user_id': uniqid.time(), 'email': email, 'password': md5(password), 'name': name, 'role': role, 'ExpirationDays': 0, 'userCode': 0, 'startDate': 'yyyy:mm:dd' };
+      query = { 'user_id': uniqid.time(), 'email': email,'phone': phone, 'password': md5(password), 'name': name, 'role': role, 'ExpirationDays': 0, 'userCode': 0, 'startDate': 'yyyy:mm:dd' };
       collection.insertOne(query, function (_err, inserted) {
         res.json(_displayResults(_resultCode.USER_CREATED_SUCCESS, 'Successfully created', true));
       });
@@ -296,15 +300,20 @@ router.post('/getdata/galleries', (req, res) => {
 });
 
 /* User login : POST */
-router.post('/users/login', function (req, res, next) {
+router.post('/users/login', function (req, res, next) { 
   var email = req.body.email;
   if (email === undefined) {
     res.status(405).json(_displayResults(_resultCode.EMAIL_UNDEFINED, 'Email(email) is undefined'));
     return;
   }
-  var password = req.body.password;
-  if (password === undefined) {
-    res.status(405).json(_displayResults(_resultCode.PASSWORD_UNDEFINED, 'Password(password) is undefined'));
+  var phone = req.body.phone;
+  if (phone === undefined) {
+    res.status(405).json(_displayResults(_resultCode.EMAIL_UNDEFINED, 'phone(phone) is undefined'));
+    return;
+  }
+  var code = req.body.code;
+  if (code === undefined) {
+    res.status(405).json(_displayResults(_resultCode.PASSWORD_UNDEFINED, 'Code(code) is undefined'));
     return;
   }
   var collection = db.get().collection(config.userCollection);
@@ -313,7 +322,8 @@ router.post('/users/login', function (req, res, next) {
     if (docs.length === 0) {
       res.status(201).json(_displayResults(_resultCode.LOGIN_EMAIL_INVALID, 'No user of this email. Please create new account'));
     } else {
-      query = { 'email': email, 'password': md5(password) };
+      // query = { 'email': email, 'userCode': parseInt(code) };
+      query = { 'email': email, 'userCode': parseInt(code), 'phone':phone };
       collection.find(query).toArray(function (_err, docs) {
         if (docs.length === 0) {
           res.status(201).json(_displayResults(_resultCode.LOGIN_PASSWORD_INVALID, 'Password is incorrect'));
